@@ -17,28 +17,28 @@ class AlphaZero(nn.Module):
 
         IN_SIZE = 4  # Number of quarters
 
-        self._initial_conv_block = ConvBlock(IN_SIZE, hidden_size, kernel_size, padding)
+        self._initial_conv = Conv(IN_SIZE, hidden_size, kernel_size, padding)
+        self._residual = nn.ModuleList(
+            [
+                Residual(hidden_size, kernel_size, padding)
+                for _ in range(num_residual_blocks)
+            ]
+        )
         self._policy_head = PolicyHead(
             hidden_size, policy_hidden_size, policy_output_size, kernel_size, padding
         )
         self._value_head = ValueHead(hidden_size, 3, kernel_size, padding)
-        self._residual_blocks = nn.ModuleList(
-            [
-                ResidualBlock(hidden_size, kernel_size, padding)
-                for _ in range(num_residual_blocks)
-            ]
-        )
 
     def forward(self, x):
-        x = self._initial_conv_block(x)
-        for block in self._residual_blocks:
+        x = self._initial_conv(x)
+        for block in self._residual:
             x = block(x)
         policy = self._policy_head(x)
         value = self._value_head(x)
         return policy, value
 
 
-class ConvBlock(nn.Module):
+class Conv(nn.Module):
     def __init__(self, in_size, out_size, kernel_size, padding):
         super().__init__()
         self.conv = nn.Conv3d(in_size, out_size, kernel_size, padding=padding)
@@ -86,7 +86,7 @@ class ValueHead(nn.Module):
         return torch.tanh(x)
 
 
-class ResidualBlock(nn.Module):
+class Residual(nn.Module):
     def __init__(self, hidden_size, kernel_size, padding):
         super().__init__()
         self.conv1 = nn.Conv3d(hidden_size, hidden_size, kernel_size, padding=padding)
