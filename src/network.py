@@ -24,10 +24,10 @@ class AlphaZero(nn.Module):
                 for _ in range(num_residual_blocks)
             ]
         )
-        self._policy_head = PolicyHead(
+        self._policy_head = Head(
             hidden_size, policy_hidden_size, policy_output_size, kernel_size, padding
         )
-        self._value_head = ValueHead(hidden_size, 3, kernel_size, padding)
+        self._value_head = Head(hidden_size, 3, 1, kernel_size, padding)
 
     def forward(self, x):
         x = self._initial_conv(x)
@@ -35,7 +35,7 @@ class AlphaZero(nn.Module):
             x = block(x)
         policy = self._policy_head(x)
         value = self._value_head(x)
-        return policy, value
+        return policy, torch.tanh(value)
 
 
 class Conv(nn.Module):
@@ -51,39 +51,17 @@ class Conv(nn.Module):
         return self.relu(x)
 
 
-class PolicyHead(nn.Module):
+class Head(nn.Module):
     def __init__(self, in_size, hidden_size, output_size, kernel_size, padding):
         super().__init__()
-        self.conv = nn.Conv3d(in_size, hidden_size, kernel_size, padding=padding)
-        self.norm = nn.BatchNorm3d(hidden_size)
-        self.relu = nn.ReLU()
+        self.conv = Conv(in_size, hidden_size, kernel_size, padding)
         self.flatten = nn.Flatten()
         self.fc = nn.LazyLinear(output_size)
 
     def forward(self, x):
         x = self.conv(x)
-        x = self.norm(x)
-        x = self.relu(x)
         x = self.flatten(x)
         return self.fc(x)
-
-
-class ValueHead(nn.Module):
-    def __init__(self, in_size, hidden_size, kernel_size, padding):
-        super().__init__()
-        self.conv = nn.Conv3d(in_size, hidden_size, kernel_size, padding=padding)
-        self.norm = nn.BatchNorm3d(hidden_size)
-        self.relu = nn.ReLU()
-        self.flatten = nn.Flatten()
-        self.fc = nn.LazyLinear(1)
-
-    def forward(self, x):
-        x = self.conv(x)
-        x = self.norm(x)
-        x = self.relu(x)
-        x = self.flatten(x)
-        x = self.fc(x)
-        return torch.tanh(x)
 
 
 class Residual(nn.Module):
