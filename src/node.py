@@ -53,7 +53,7 @@ class Node:
 
     def _mask_policy_children(self, policy, children: [engine.State]) -> ["Node"]:
         # TODO: Need to softmax the policy before?
-        policy_indexes = [Node._map_move_to_policy_index(c.move) for c in children]
+        policy_indexes = [Node._move_to_policy_index(c.move) for c in children]
         masked_policy = policy[:, policy_indexes]
         masked_policy /= masked_policy.sum()
 
@@ -69,15 +69,15 @@ class Node:
         ]
 
     @staticmethod
-    def _map_move_to_policy_index(move: engine.Move) -> int:
+    def _move_to_policy_index(move: engine.Move) -> int:
         # noinspection PyTypeChecker
         return (
-            move.passive_source_index
-            + move.aggressive_source_index * 16
-            + int(move.passive_side) * 2
-            + int(move.aggressive_side) * 2
-            + int(move.direction) * 8
-            + move.times_moved * 2
+            move.passive_source_index  # 16
+            + move.aggressive_source_index * 16  # 16
+            + int(move.passive_side) * 16 * 16  # 2
+            + int(move.aggressive_side) * 16 * 16 * 2  # 2
+            + int(move.direction) * 16 * 16 * 2 * 2  # 8
+            + move.times_moved * 16 * 16 * 2 * 2 * 8  # 2
         )
 
     def backpropagate(self, value: float):
