@@ -1,5 +1,5 @@
 from node import Node
-import engine
+from src import engine
 
 
 class AlphaZeroMCTS:

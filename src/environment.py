@@ -2,14 +2,16 @@ import os
 import random
 from dataclasses import dataclass
 from datetime import datetime
-
 import numpy as np
 import torch
+import logging
+
 from network import AlphaZero
-import engine
+from src import engine
 from src.mcts import AlphaZeroMCTS
 from src.conversions import move_to_policy_index, board_to_tensor
-from src.node import Node
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -52,9 +54,9 @@ class Environment:
         while True:
             root = self._mcts.search(state)
 
-            policy_idxs = [move_to_policy_index(c.move) for c in root.children]
+            policy_idxs = [move_to_policy_index(c.state.move) for c in root.children]
             visits = [c.visit_count for c in root.children]
-            move_probabilities = visits / np.sum(visits)
+            move_probabilities = torch.tensor(visits, dtype=torch.float32) / sum(visits)
 
             policy_vector = torch.zeros(self._config.policy_size)
             policy_vector[policy_idxs] = move_probabilities
@@ -62,7 +64,7 @@ class Environment:
                 SearchState(board=state.board, policy=policy_vector, player=player)
             )
 
-            next_node = np.random.choice(root.children, p=move_probabilities)
+            next_node = np.random.choice(root.children, p=move_probabilities.numpy())
             state = next_node.state
             player *= -1
 
@@ -74,7 +76,7 @@ class Environment:
             TrainingExample(
                 board=board_to_tensor(s.board),
                 policy=s.policy,
-                value=torch.tensor(s.player * win_multiplier),
+                value=torch.tensor(s.player * win_multiplier, dtype=torch.float32),
             )
             for s in states
         ]
@@ -99,7 +101,7 @@ class Environment:
 
             optimiser.zero_grad()
             loss.backward()
-            self._network.optimiser.step()
+            optimiser.step()
 
     def _save(self, time: str):
         if "models" not in os.listdir():
@@ -108,16 +110,23 @@ class Environment:
             os.mkdir(f"models/{time}")
         checkpoint_num = len(os.listdir(f"models/{time}"))
         torch.save(self._network, f"models/{time}/checkpoint_{checkpoint_num}.pt")
+        logger.info(f"Saved model to: models/{time}/checkpoint_{checkpoint_num}.pt")
 
     def learn(self):
         start_time = datetime.now().strftime("%H%M%S")
 
-        for _ in range(self._config.iterations):
+        logger.info(f"Training model at {start_time} with config: {self._config}")
+
+        for iteration in range(self._config.iterations):
+            logger.info(f"Iteration {iteration + 1}/{self._config.iterations}")
+
             data = []
             for _ in range(self._config.playouts):
                 data += self._playout()
+            logger.info(f"Completed playouts with data size {len(data)}")
 
-            for _ in range(self._config.epochs):
+            for epoch in range(self._config.epochs):
+                logger.info(f"Epoch {epoch + 1}/{self._config.epochs}")
                 self._train(data)
 
             self._save(start_time)

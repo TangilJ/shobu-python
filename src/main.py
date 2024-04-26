@@ -1,7 +1,15 @@
-from network import AlphaZero
-from mcts import AlphaZeroMCTS
-import engine
+import logging
 
+from network import AlphaZero
+from src.environment import Environment, EnvConfig
+
+logger = logging.getLogger(__name__)
+logging.basicConfig(
+    format="[%(asctime)s] %(levelname)s: %(message)s",
+    level=logging.INFO,
+    datefmt="%H:%M:%S",
+)
+logger.info("Starting")
 
 POLICY_OUTPUT_SIZE = (
     16  # passive_source_index
@@ -19,22 +27,18 @@ model = AlphaZero(
     num_residual_blocks=3,
 )
 
-mcts = AlphaZeroMCTS(
-    network=model,
-    c_puct=2,
-    num_sims=100,
+
+config = EnvConfig(
+    policy_size=POLICY_OUTPUT_SIZE,
+    learning_rate=0.001,
+    c_puct=1,
+    batch_size=64,
+    iterations=5,
+    playouts=1,
+    epochs=5,
+    simulations=10,
 )
 
-state = engine.start_state
-engine.print_board(state.board)
-print("-" * 20)
-
-for i in range(10):
-    state = mcts.search(state)
-
-    to_print = state.board
-    if i % 2 == 1:
-        to_print = engine.reverse_board(to_print)
-    engine.print_board(to_print)
-
-    print("-" * 20)
+logger.info("Creating environment")
+env = Environment(model, config)
+env.learn()

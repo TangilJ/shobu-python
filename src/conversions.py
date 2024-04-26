@@ -1,5 +1,4 @@
 import torch
-import engine
 from src import engine
 
 
@@ -15,14 +14,14 @@ def bitboard_to_tensor(bitboard: int) -> torch.Tensor:
 
 def board_to_tensor(board: engine.Board) -> torch.Tensor:
     # 4 quarters with 3 planes each: own, enemy, empty spaces
-    tensor = torch.empty((1, 4, 3, 4, 4))
+    tensor = torch.empty((4, 3, 4, 4))
     # TODO: Also experiment with 16x16 instead of splitting into quarters with Conv2d
 
     quarters = [board.top_left, board.top_right, board.bottom_left, board.bottom_right]
     for i, quarter in enumerate(quarters):
-        tensor[0][i][0] = bitboard_to_tensor(quarter.own)
-        tensor[0][i][1] = bitboard_to_tensor(quarter.enemy)
-        tensor[0][i][2] = bitboard_to_tensor(~(quarter.own | quarter.enemy))
+        tensor[i][0] = bitboard_to_tensor(quarter.own)
+        tensor[i][1] = bitboard_to_tensor(quarter.enemy)
+        tensor[i][2] = bitboard_to_tensor(~(quarter.own | quarter.enemy))
 
     return tensor
 
@@ -35,5 +34,5 @@ def move_to_policy_index(move: engine.Move) -> int:
         + int(move.passive_side) * 16 * 16  # 2
         + int(move.aggressive_side) * 16 * 16 * 2  # 2
         + int(move.direction) * 16 * 16 * 2 * 2  # 8
-        + move.times_moved * 16 * 16 * 2 * 2 * 8  # 2
+        + (move.times_moved - 1) * 16 * 16 * 2 * 2 * 8  # 2
     )

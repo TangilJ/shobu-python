@@ -1,6 +1,6 @@
 from typing import Optional
 
-import engine
+from src import engine
 from network import AlphaZero
 from src.conversions import board_to_tensor, move_to_policy_index
 
@@ -27,6 +27,7 @@ class Node:
     def expand_children(self, network: AlphaZero):
         assert not self.children  # Can only expand once
         board = board_to_tensor(self.state.board)
+        board = board.unsqueeze(0)
         policy, value = network(board)
         next_states = engine.get_next_states(self.state.board)
         self.children = self._mask_policy_children(policy, next_states)
