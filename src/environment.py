@@ -81,11 +81,7 @@ class Environment:
 
     def _train(self, data: [TrainingExample]):
         optimiser = torch.optim.Adam(
-            self._network.parameters(),
-            lr=self._config.optimiser.learning_rate,
-            # betas=self._config.optimiser.betas,
-            # eps=self._config.optimiser.eps,
-            # weight_decay=self._config.optimiser.weight_decay,
+            self._network.parameters(), lr=self._config.learning_rate
         )
 
         random.shuffle(data)
