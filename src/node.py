@@ -2,7 +2,7 @@ from typing import Optional
 
 import engine
 from network import AlphaZero
-from src.conversions import board_to_tensor
+from src.conversions import board_to_tensor, move_to_policy_index
 
 
 class Node:
@@ -53,7 +53,7 @@ class Node:
 
     def _mask_policy_children(self, policy, children: [engine.State]) -> ["Node"]:
         # TODO: Need to softmax the policy before?
-        policy_indexes = [Node._move_to_policy_index(c.move) for c in children]
+        policy_indexes = [move_to_policy_index(c.move) for c in children]
         masked_policy = policy[:, policy_indexes]
         masked_policy /= masked_policy.sum()
 
@@ -67,18 +67,6 @@ class Node:
             )
             for i, state in enumerate(children)
         ]
-
-    @staticmethod
-    def _move_to_policy_index(move: engine.Move) -> int:
-        # noinspection PyTypeChecker
-        return (
-            move.passive_source_index  # 16
-            + move.aggressive_source_index * 16  # 16
-            + int(move.passive_side) * 16 * 16  # 2
-            + int(move.aggressive_side) * 16 * 16 * 2  # 2
-            + int(move.direction) * 16 * 16 * 2 * 2  # 8
-            + move.times_moved * 16 * 16 * 2 * 2 * 8  # 2
-        )
 
     def backpropagate(self, value: float):
         self.visit_count += 1

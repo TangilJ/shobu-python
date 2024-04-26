@@ -8,7 +8,7 @@ class AlphaZeroMCTS:
         self.c_puct = c_puct
         self.num_sims = num_sims
 
-    def search(self, state: engine.State) -> engine.State:
+    def search(self, state: engine.State) -> Node:
         root = Node(state, parent=None, prior_value=0, c_puct=self.c_puct, player=1)
 
         for _ in range(self.num_sims):
@@ -29,4 +29,4 @@ class AlphaZeroMCTS:
             # Backpropagate
             node.backpropagate(value)
 
-        return max(root.children, key=lambda c: c.visit_count).state
+        return root

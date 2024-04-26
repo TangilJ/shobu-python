@@ -1,5 +1,6 @@
 import torch
 import engine
+from src import engine
 
 
 def bitboard_to_tensor(bitboard: int) -> torch.Tensor:
@@ -24,3 +25,15 @@ def board_to_tensor(board: engine.Board) -> torch.Tensor:
         tensor[0][i][2] = bitboard_to_tensor(~(quarter.own | quarter.enemy))
 
     return tensor
+
+
+def move_to_policy_index(move: engine.Move) -> int:
+    # noinspection PyTypeChecker
+    return (
+        move.passive_source_index  # 16
+        + move.aggressive_source_index * 16  # 16
+        + int(move.passive_side) * 16 * 16  # 2
+        + int(move.aggressive_side) * 16 * 16 * 2  # 2
+        + int(move.direction) * 16 * 16 * 2 * 2  # 8
+        + move.times_moved * 16 * 16 * 2 * 2 * 8  # 2
+    )
