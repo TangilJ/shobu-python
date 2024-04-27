@@ -26,6 +26,9 @@ class AlphaZeroMCTS(Player):
                 value = -1
             else:
                 value = node.expand_children(self.network)
+                # Lose if no moves left
+                if value is None:
+                    value = -1
 
             # Backpropagate
             node.backpropagate(value)

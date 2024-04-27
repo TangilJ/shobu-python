@@ -24,12 +24,16 @@ class Node:
         self.value = 0
         self.visit_count = 0
 
-    def expand_children(self, network: AlphaZero):
+    def expand_children(self, network: AlphaZero) -> Optional[float]:
         assert not self.children  # Can only expand once
         board = board_to_tensor(self.state.board)
         board = board.unsqueeze(0)
         policy, value = network(board)
         next_states = engine.get_next_states(self.state.board)
+
+        if len(next_states) == 0:
+            return None
+
         self.children = self._mask_policy_children(policy, next_states)
         return value
 
