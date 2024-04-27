@@ -73,6 +73,7 @@ class Environment:
         state = engine.start_state
         player = 1
 
+        iters = 0
         while True:
             root = self._mcts.search(state)
 
@@ -94,6 +95,10 @@ class Environment:
 
             if state.win != engine.Win.GameOngoing:
                 break
+
+            iters += 1
+            if iters > 400:
+                return []
 
         win_multiplier = 1 if state.win == engine.Win.OwnWin else -1
         return [
@@ -131,7 +136,10 @@ class Environment:
     def _get_training_data(self) -> [TrainingExample]:
         data = []
         for playout in range(self._config.playouts):
-            data += self._playout()
+            result = []
+            while len(result) == 0:
+                result = self._playout()
+            data += result
             logger.info(
                 f"Finished playout {playout + 1}/{self._config.playouts} with data size {len(data)}"
             )
