@@ -53,3 +53,18 @@ class Compare:
                 loops += 1
 
         return p1_wins, p2_wins, loops
+
+
+if __name__ == "__main__":
+    from src.random_player import RandomPlayer
+
+    GAMES = 10000
+
+    p1 = RandomPlayer()
+    p2 = RandomPlayer()
+    print("Starting comparison")
+    compare = Compare(p1, p2)
+    p1_wins, p2_wins, loops = compare.evaluate(GAMES)
+    print(f"Player 1 wins: {p1_wins}")
+    print(f"Player 2 wins: {p2_wins}")
+    print(f"Loops: {loops}")
