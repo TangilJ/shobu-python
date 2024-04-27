@@ -133,7 +133,7 @@ class Environment:
         for playout in range(self._config.playouts):
             data += self._playout()
             logger.info(
-                f"Playout {playout + 1}/{self._config.playouts} with data size {len(data)}"
+                f"Finished playout {playout + 1}/{self._config.playouts} with data size {len(data)}"
             )
         return data
 
@@ -143,11 +143,11 @@ class Environment:
         logger.info(f"Training model at {start_time} with config: {self._config}")
 
         for iteration in range(self._config.iterations):
-            logger.info(f"Iteration {iteration + 1}/{self._config.iterations}")
+            logger.info(f"Starting iteration {iteration + 1}/{self._config.iterations}")
 
             data = self._get_training_data()
             for epoch in range(self._config.epochs):
-                logger.info(f"Epoch {epoch + 1}/{self._config.epochs}")
+                logger.info(f"Starting epoch {epoch + 1}/{self._config.epochs}")
                 self._train(data)
 
             self._save(start_time)
