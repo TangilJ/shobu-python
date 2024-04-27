@@ -42,3 +42,7 @@ config = EnvConfig(
 logger.info("Creating environment")
 env = Environment(model, config)
 env.learn()
+
+logger.info("Finished training")
+loss = env.evaluate()
+logger.info(f"Final loss: {loss}")
