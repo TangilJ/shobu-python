@@ -117,7 +117,7 @@ class Environment:
 
         policy, value = self._network(boards)
         policy_loss = torch.nn.functional.cross_entropy(policy, policies)
-        value_loss = torch.nn.functional.mse_loss(value, values)
+        value_loss = torch.nn.functional.mse_loss(value.squeeze(), values.squeeze())
         return policy_loss + value_loss
 
     def _train(self, data: [TrainingExample]):
