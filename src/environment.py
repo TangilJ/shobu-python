@@ -63,9 +63,10 @@ class Environment:
         if start_time not in os.listdir("models"):
             os.mkdir(f"models/{start_time}")
         checkpoint_num = len(os.listdir(f"models/{start_time}"))
-        torch.save(self._network, f"models/{start_time}/checkpoint_{checkpoint_num}.pt")
+        save_path = f"models/{start_time}/checkpoint_{checkpoint_num + 1}.pt"
+        torch.save(self._network, save_path)
         logger.info(
-            f"Saved model to: models/{start_time}/checkpoint_{checkpoint_num}.pt"
+            f"Saved model to: {save_path}"
         )
 
     def _playout(self) -> [TrainingExample]:
