@@ -88,9 +88,9 @@ class Optimiser:
             c_puct=p["c_puct"],
             batch_size=64,
             iterations=5,
-            playouts=3,
+            playouts=1,
             epochs=20,
-            simulations=10,
+            simulations=25,
         )
 
         env = Environment.from_config(model, config)
