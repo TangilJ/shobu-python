@@ -34,9 +34,9 @@ config = EnvConfig(
     c_puct=1,
     batch_size=64,
     iterations=5,
-    playouts=1,
-    epochs=5,
-    simulations=10,
+    playouts=10,
+    epochs=20,
+    simulations=25,
 )
 
 logger.info("Creating environment")
