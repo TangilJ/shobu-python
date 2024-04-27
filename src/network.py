@@ -1,3 +1,5 @@
+from dataclasses import dataclass
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -12,30 +14,44 @@ POLICY_OUTPUT_SIZE = (
 )  # = 16384
 
 
+@dataclass
+class ModelConfig:
+    hidden_size: int
+    policy_hidden_size: int
+    num_residual_blocks: int
+    kernel_size: int
+    padding: int
+
+
 class AlphaZero(nn.Module):
-    def __init__(
-        self,
-        hidden_size,
-        policy_hidden_size,
-        num_residual_blocks,
-        kernel_size=3,
-        padding=1,
-    ):
+    def __init__(self, config: ModelConfig):
         super().__init__()
 
         IN_SIZE = 4  # Number of quarters
 
-        self._initial_conv = Conv(IN_SIZE, hidden_size, kernel_size, padding)
+        self._initial_conv = Conv(
+            IN_SIZE, config.hidden_size, config.kernel_size, config.padding
+        )
         self._residual = nn.ModuleList(
             [
-                Residual(hidden_size, kernel_size, padding)
-                for _ in range(num_residual_blocks)
+                Residual(config.hidden_size, config.kernel_size, config.padding)
+                for _ in range(config.num_residual_blocks)
             ]
         )
         self._policy_head = Head(
-            hidden_size, policy_hidden_size, POLICY_OUTPUT_SIZE, kernel_size, padding
+            config.hidden_size,
+            config.policy_hidden_size,
+            POLICY_OUTPUT_SIZE,
+            config.kernel_size,
+            config.padding,
         )
-        self._value_head = Head(hidden_size, 3, 1, kernel_size, padding)
+        self._value_head = Head(
+            config.hidden_size,
+            3,
+            1,
+            config.kernel_size,
+            config.padding,
+        )
 
     def forward(self, x):
         x = self._initial_conv(x)

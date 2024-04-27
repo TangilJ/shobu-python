@@ -6,19 +6,12 @@ import numpy as np
 import torch
 import logging
 
-from network import AlphaZero
+from network import AlphaZero, ModelConfig
 from src import engine
 from src.mcts import AlphaZeroMCTS
 from src.conversions import move_to_policy_index, board_to_tensor
 
 logger = logging.getLogger(__name__)
-
-
-@dataclass
-class ModelConfig:
-    hidden_size: int
-    policy_hidden_size: int
-    num_residual_blocks: int
 
 
 @dataclass
@@ -55,11 +48,7 @@ class Environment:
 
     @staticmethod
     def from_config(model: ModelConfig, config: EnvConfig):
-        network = AlphaZero(
-            hidden_size=model.hidden_size,
-            policy_hidden_size=model.policy_hidden_size,
-            num_residual_blocks=model.num_residual_blocks,
-        )
+        network = AlphaZero(model)
         return Environment(network, config)
 
     @staticmethod
