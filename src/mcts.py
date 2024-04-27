@@ -1,8 +1,9 @@
 from node import Node
 from src import engine
+from src.player import Player
 
 
-class AlphaZeroMCTS:
+class AlphaZeroMCTS(Player):
     def __init__(self, network, c_puct, num_sims):
         self.network = network
         self.c_puct = c_puct
@@ -30,3 +31,8 @@ class AlphaZeroMCTS:
             node.backpropagate(value)
 
         return root
+
+    def move(self, state: engine.State) -> engine.State:
+        root = self.search(state)
+        next_node = max(root.children, key=lambda c: c.visit_count)
+        return next_node.state
