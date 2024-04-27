@@ -16,7 +16,6 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class EnvConfig:
-    policy_size: int
     learning_rate: float
     c_puct: float
     batch_size: int

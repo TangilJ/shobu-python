@@ -2,13 +2,21 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+POLICY_OUTPUT_SIZE = (
+    16  # passive_source_index
+    * 16  # aggressive_source_index
+    * 2  # passive_side
+    * 2  # aggressive_side
+    * 8  # direction
+    * 2  # times_moved
+)  # = 16384
+
 
 class AlphaZero(nn.Module):
     def __init__(
         self,
         hidden_size,
         policy_hidden_size,
-        policy_output_size,
         num_residual_blocks,
         kernel_size=3,
         padding=1,
@@ -25,7 +33,7 @@ class AlphaZero(nn.Module):
             ]
         )
         self._policy_head = Head(
-            hidden_size, policy_hidden_size, policy_output_size, kernel_size, padding
+            hidden_size, policy_hidden_size, POLICY_OUTPUT_SIZE, kernel_size, padding
         )
         self._value_head = Head(hidden_size, 3, 1, kernel_size, padding)
 
