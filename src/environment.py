@@ -89,6 +89,8 @@ class Environment:
             next_node = np.random.choice(root.children, p=move_probabilities.numpy())
             state = next_node.state
             player *= -1
+            # Engine reverses board state when generating
+            # states so no need to do it manually here
 
             if state.win != engine.Win.GameOngoing:
                 break
