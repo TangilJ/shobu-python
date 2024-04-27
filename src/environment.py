@@ -46,6 +46,23 @@ class Environment:
         self._config = config
         self._mcts = AlphaZeroMCTS(network, config.c_puct, config.simulations)
 
+    @staticmethod
+    def load(model_path: str, config: EnvConfig):
+        network = torch.load(model_path)
+        logger.info(f"Loaded model from: {model_path}")
+        return Environment(network, config)
+
+    def _save(self, start_time: str):
+        if "models" not in os.listdir():
+            os.mkdir("models")
+        if start_time not in os.listdir("models"):
+            os.mkdir(f"models/{start_time}")
+        checkpoint_num = len(os.listdir(f"models/{start_time}"))
+        torch.save(self._network, f"models/{start_time}/checkpoint_{checkpoint_num}.pt")
+        logger.info(
+            f"Saved model to: models/{start_time}/checkpoint_{checkpoint_num}.pt"
+        )
+
     def _playout(self) -> [TrainingExample]:
         states: [SearchState] = []
         state = engine.start_state
@@ -127,3 +144,9 @@ class Environment:
                 self._train(data)
 
             self._save(start_time)
+
+    @torch.no_grad()
+    def evaluate(self):
+        data = self._get_training_data()
+        loss = self._get_loss(data)
+        return loss.item()
