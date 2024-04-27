@@ -1,7 +1,6 @@
 import logging
 
-from network import AlphaZero
-from src.environment import Environment, EnvConfig
+from src.environment import Environment, EnvConfig, ModelConfig
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(
@@ -12,7 +11,7 @@ logging.basicConfig(
 logger.info("Starting")
 
 
-model = AlphaZero(
+model = ModelConfig(
     hidden_size=5,
     policy_hidden_size=5,
     num_residual_blocks=3,
@@ -30,7 +29,7 @@ config = EnvConfig(
 )
 
 logger.info("Creating environment")
-env = Environment(model, config)
+env = Environment.from_config(model, config)
 env.learn()
 
 logger.info("Finished training")

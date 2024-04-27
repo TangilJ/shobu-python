@@ -15,10 +15,18 @@ logger = logging.getLogger(__name__)
 
 
 @dataclass
+class ModelConfig:
+    hidden_size: int
+    policy_hidden_size: int
+    num_residual_blocks: int
+
+
+@dataclass
 class EnvConfig:
     learning_rate: float
     c_puct: float
     batch_size: int
+
     iterations: int
     playouts: int
     epochs: int
@@ -44,6 +52,15 @@ class Environment:
         self._network = network
         self._config = config
         self._mcts = AlphaZeroMCTS(network, config.c_puct, config.simulations)
+
+    @staticmethod
+    def from_config(model: ModelConfig, config: EnvConfig):
+        network = AlphaZero(
+            hidden_size=model.hidden_size,
+            policy_hidden_size=model.policy_hidden_size,
+            num_residual_blocks=model.num_residual_blocks,
+        )
+        return Environment(network, config)
 
     @staticmethod
     def load(model_path: str, config: EnvConfig):
