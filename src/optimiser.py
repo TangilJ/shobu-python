@@ -81,7 +81,6 @@ class Optimiser:
             policy_hidden_size=p["policy_hidden_size"],
             num_residual_blocks=p["num_residual_blocks"],
             value_hidden_size=p["value_hidden_size"],
-            kernel_size=3,
         )
 
         config = EnvConfig(
