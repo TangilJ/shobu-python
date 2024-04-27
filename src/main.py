@@ -16,7 +16,6 @@ model = ModelConfig(
     policy_hidden_size=5,
     value_hidden_size=5,
     num_residual_blocks=3,
-    kernel_size=3,
 )
 
 

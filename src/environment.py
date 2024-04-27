@@ -6,7 +6,7 @@ import numpy as np
 import torch
 import logging
 
-from network import AlphaZero, ModelConfig
+from network import AlphaZero, ModelConfig, POLICY_OUTPUT_SIZE
 from src import engine
 from src.mcts import AlphaZeroMCTS
 from src.conversions import move_to_policy_index, board_to_tensor
@@ -80,7 +80,7 @@ class Environment:
             visits = [c.visit_count for c in root.children]
             move_probabilities = torch.tensor(visits, dtype=torch.float32) / sum(visits)
 
-            policy_vector = torch.zeros(self._config.policy_size)
+            policy_vector = torch.zeros(POLICY_OUTPUT_SIZE, dtype=torch.float32)
             policy_vector[policy_idxs] = move_probabilities
             states.append(
                 SearchState(board=state.board, policy=policy_vector, player=player)

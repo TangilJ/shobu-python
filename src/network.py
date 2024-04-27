@@ -13,6 +13,8 @@ POLICY_OUTPUT_SIZE = (
     * 2  # times_moved
 )  # = 16384
 
+KERNEL_SIZE = 3
+
 
 @dataclass
 class ModelConfig:
@@ -20,7 +22,6 @@ class ModelConfig:
     policy_hidden_size: int
     value_hidden_size: int
     num_residual_blocks: int
-    kernel_size: int
 
 
 class AlphaZero(nn.Module):
@@ -29,25 +30,14 @@ class AlphaZero(nn.Module):
 
         IN_SIZE = 4  # Number of quarters
 
-        self._initial_conv = Conv(IN_SIZE, config.hidden_size, config.kernel_size)
+        self._initial_conv = Conv(IN_SIZE, config.hidden_size)
         self._residual = nn.ModuleList(
-            [
-                Residual(config.hidden_size, config.kernel_size)
-                for _ in range(config.num_residual_blocks)
-            ]
+            [Residual(config.hidden_size) for _ in range(config.num_residual_blocks)]
         )
         self._policy_head = Head(
-            config.hidden_size,
-            config.policy_hidden_size,
-            POLICY_OUTPUT_SIZE,
-            config.kernel_size,
+            config.hidden_size, config.policy_hidden_size, POLICY_OUTPUT_SIZE
         )
-        self._value_head = Head(
-            config.hidden_size,
-            config.value_hidden_size,
-            1,
-            config.kernel_size,
-        )
+        self._value_head = Head(config.hidden_size, config.value_hidden_size, 1)
 
     def forward(self, x):
         x = self._initial_conv(x)
@@ -59,9 +49,9 @@ class AlphaZero(nn.Module):
 
 
 class Conv(nn.Module):
-    def __init__(self, in_size, out_size, kernel_size):
+    def __init__(self, in_size, out_size):
         super().__init__()
-        self.conv = nn.Conv3d(in_size, out_size, kernel_size)
+        self.conv = nn.Conv3d(in_size, out_size, KERNEL_SIZE, padding="same")
         self.norm = nn.BatchNorm3d(out_size)
         self.relu = nn.ReLU()
 
@@ -72,9 +62,9 @@ class Conv(nn.Module):
 
 
 class Head(nn.Module):
-    def __init__(self, in_size, hidden_size, output_size, kernel_size):
+    def __init__(self, in_size, hidden_size, output_size):
         super().__init__()
-        self.conv = Conv(in_size, hidden_size, kernel_size)
+        self.conv = Conv(in_size, hidden_size)
         self.flatten = nn.Flatten()
         self.fc = nn.LazyLinear(output_size)
 
@@ -85,11 +75,11 @@ class Head(nn.Module):
 
 
 class Residual(nn.Module):
-    def __init__(self, hidden_size, kernel_size):
+    def __init__(self, hidden_size):
         super().__init__()
-        self.conv1 = nn.Conv3d(hidden_size, hidden_size, kernel_size)
+        self.conv1 = nn.Conv3d(hidden_size, hidden_size, KERNEL_SIZE, padding="same")
         self.norm1 = nn.BatchNorm3d(hidden_size)
-        self.conv2 = nn.Conv3d(hidden_size, hidden_size, kernel_size)
+        self.conv2 = nn.Conv3d(hidden_size, hidden_size, KERNEL_SIZE, padding="same")
         self.norm2 = nn.BatchNorm3d(hidden_size)
 
     def forward(self, x):
