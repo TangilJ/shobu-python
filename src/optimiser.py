@@ -108,6 +108,10 @@ class Optimiser:
             )
             logger.info(f"Trial {trial + 1}/{trials} complete")
 
+        logger.info(f"Optimisation complete. Best parameters:")
+        best_parameters, _ = self.ax.get_best_parameters()
+        logger.info(best_parameters)
+
 
 if __name__ == "__main__":
     logging.basicConfig(
