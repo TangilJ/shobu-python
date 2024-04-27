@@ -14,9 +14,9 @@ logger.info("Starting")
 model = ModelConfig(
     hidden_size=5,
     policy_hidden_size=5,
+    value_hidden_size=5,
     num_residual_blocks=3,
     kernel_size=3,
-    padding=0,
 )
 
 
