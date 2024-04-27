@@ -32,7 +32,13 @@ config = EnvConfig(
 logger.info("Creating environment")
 env = Environment.from_config(model, config)
 env.learn()
-
 logger.info("Finished training")
-loss = env.evaluate()
-logger.info(f"Final loss: {loss}")
+
+losses = []
+for _ in range(5):
+    loss = env.evaluate()
+    losses.append(loss)
+    logger.info(f"Loss: {loss}")
+
+logger.info(f"Losses: {losses}")
+logger.info(f"Average loss: {sum(losses) / len(losses)}")
