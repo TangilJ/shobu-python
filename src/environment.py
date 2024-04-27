@@ -81,6 +81,16 @@ class Environment:
             for s in states
         ]
 
+    def _get_loss(self, data: [TrainingExample]):
+        boards = torch.stack([d.board for d in data])
+        policies = torch.stack([d.policy for d in data])
+        values = torch.stack([d.value for d in data])
+
+        policy, value = self._network(boards)
+        policy_loss = torch.nn.functional.cross_entropy(policy, policies)
+        value_loss = torch.nn.functional.mse_loss(value, values)
+        return policy_loss + value_loss
+
     def _train(self, data: [TrainingExample]):
         optimiser = torch.optim.Adam(
             self._network.parameters(), lr=self._config.learning_rate
@@ -89,28 +99,19 @@ class Environment:
         random.shuffle(data)
         for batch in range(0, len(data), self._config.batch_size):
             batch_data = data[batch : batch + self._config.batch_size]
-
-            boards = torch.stack([d.board for d in batch_data])
-            policies = torch.stack([d.policy for d in batch_data])
-            values = torch.stack([d.value for d in batch_data])
-
-            policy, value = self._network(boards)
-            policy_loss = torch.nn.functional.cross_entropy(policy, policies)
-            value_loss = torch.nn.functional.mse_loss(value, values)
-            loss = policy_loss + value_loss
-
+            loss = self._get_loss(batch_data)
             optimiser.zero_grad()
             loss.backward()
             optimiser.step()
 
-    def _save(self, time: str):
-        if "models" not in os.listdir():
-            os.mkdir("models")
-        if time not in os.listdir("models"):
-            os.mkdir(f"models/{time}")
-        checkpoint_num = len(os.listdir(f"models/{time}"))
-        torch.save(self._network, f"models/{time}/checkpoint_{checkpoint_num}.pt")
-        logger.info(f"Saved model to: models/{time}/checkpoint_{checkpoint_num}.pt")
+    def _get_training_data(self) -> [TrainingExample]:
+        data = []
+        for playout in range(self._config.playouts):
+            data += self._playout()
+            logger.info(
+                f"Playout {playout + 1}/{self._config.playouts} with data size {len(data)}"
+            )
+        return data
 
     def learn(self):
         start_time = datetime.now().strftime("%H%M%S")
@@ -120,11 +121,7 @@ class Environment:
         for iteration in range(self._config.iterations):
             logger.info(f"Iteration {iteration + 1}/{self._config.iterations}")
 
-            data = []
-            for _ in range(self._config.playouts):
-                data += self._playout()
-            logger.info(f"Completed playouts with data size {len(data)}")
-
+            data = self._get_training_data()
             for epoch in range(self._config.epochs):
                 logger.info(f"Epoch {epoch + 1}/{self._config.epochs}")
                 self._train(data)
