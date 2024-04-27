@@ -163,6 +163,8 @@ class Environment:
 
     @torch.no_grad()
     def evaluate(self):
+        logger.info("Starting evaluation")
         data = self._get_training_data()
-        loss = self._get_loss(data)
-        return loss.item()
+        loss = self._get_loss(data).item()
+        logger.info(f"Finished evaluation with loss: {loss}")
+        return loss
