@@ -1,3 +1,4 @@
 .idea/
 src/models/
+src/optimiser/
 *__pycache__/
