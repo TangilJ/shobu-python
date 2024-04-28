@@ -12,16 +12,16 @@ logger.info("Starting")
 
 
 model = ModelConfig(
-    hidden_size=5,
-    policy_hidden_size=5,
-    value_hidden_size=5,
-    num_residual_blocks=3,
+    hidden_size=28,
+    policy_hidden_size=73,
+    value_hidden_size=34,
+    num_residual_blocks=14,
 )
 
 
 config = EnvConfig(
-    learning_rate=0.001,
-    c_puct=1,
+    learning_rate=0.000007,
+    c_puct=1.7,
     batch_size=64,
     iterations=5,
     playouts=1,
