@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 
 class Optimiser:
-    def __init__(self, ax:AxClient):
+    def __init__(self, ax: AxClient):
         self.ax = ax
 
     @staticmethod
@@ -71,6 +71,7 @@ class Optimiser:
         if "optimiser" not in os.listdir():
             os.mkdir("optimiser")
         self.ax.save_to_json_file(f"optimiser/{t}.json")
+        logger.info(f"Saved optimiser to: optimiser/{t}.json")
 
     @staticmethod
     def load(self, filename: str):
@@ -118,6 +119,11 @@ class Optimiser:
 
 
 if __name__ == "__main__":
+    import pandas as pd
+
+    pd.set_option("display.max_colwidth", None)
+    pd.set_option("display.max_columns", None)
+
     logging.basicConfig(
         format="[%(asctime)s] %(levelname)s: %(message)s",
         level=logging.INFO,
@@ -127,3 +133,5 @@ if __name__ == "__main__":
     optimiser = Optimiser.new()
     optimiser.run(20)
     optimiser.save()
+
+    print(optimiser.ax.get_trials_data_frame())
