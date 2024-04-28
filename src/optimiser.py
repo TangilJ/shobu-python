@@ -22,7 +22,7 @@ class Optimiser:
                 {
                     "name": "lr",
                     "type": "range",
-                    "bounds": [0.000001, 0.1],
+                    "bounds": [0.0000001, 0.1],
                     "value_type": "float",
                     "log_scale": True,
                 },
@@ -44,13 +44,6 @@ class Optimiser:
                     "name": "num_residual_blocks",
                     "type": "range",
                     "bounds": [1, 20],
-                    "value_type": "int",
-                    "log_scale": False,
-                },
-                {
-                    "name": "policy_hidden_size",
-                    "type": "range",
-                    "bounds": [1, 100],
                     "value_type": "int",
                     "log_scale": False,
                 },
@@ -83,7 +76,6 @@ class Optimiser:
     def _run_trial(p: dict) -> float:
         model = ModelConfig(
             hidden_size=p["hidden_size"],
-            policy_hidden_size=p["policy_hidden_size"],
             num_residual_blocks=p["num_residual_blocks"],
             value_hidden_size=p["value_hidden_size"],
         )

@@ -13,13 +13,10 @@ POLICY_OUTPUT_SIZE = (
     * 2  # times_moved
 )  # = 16384
 
-KERNEL_SIZE = 3
-
 
 @dataclass
 class ModelConfig:
     hidden_size: int
-    policy_hidden_size: int
     value_hidden_size: int
     num_residual_blocks: int
 
@@ -30,28 +27,26 @@ class AlphaZero(nn.Module):
 
         IN_SIZE = 4  # Number of quarters
 
-        self._initial_conv = Conv(IN_SIZE, config.hidden_size)
-        self._residual = nn.ModuleList(
+        self.initial_conv = ConvBlock(IN_SIZE, config.hidden_size, kernel_size=3)
+        self.residual = nn.ModuleList(
             [Residual(config.hidden_size) for _ in range(config.num_residual_blocks)]
         )
-        self._policy_head = Head(
-            config.hidden_size, config.policy_hidden_size, POLICY_OUTPUT_SIZE
-        )
-        self._value_head = Head(config.hidden_size, config.value_hidden_size, 1)
+        self.policy_head = PolicyHead(config.hidden_size)
+        self.value_head = ValueHead(config.hidden_size, config.value_hidden_size)
 
     def forward(self, x):
-        x = self._initial_conv(x)
-        for block in self._residual:
+        x = self.initial_conv(x)
+        for block in self.residual:
             x = block(x)
-        policy = self._policy_head(x)
-        value = self._value_head(x)
-        return policy, torch.tanh(value)
+        policy = self.policy_head(x)
+        value = self.value_head(x)
+        return policy, value
 
 
-class Conv(nn.Module):
-    def __init__(self, in_size, out_size):
+class ConvBlock(nn.Module):
+    def __init__(self, in_size, out_size, kernel_size):
         super().__init__()
-        self.conv = nn.Conv3d(in_size, out_size, KERNEL_SIZE, padding="same")
+        self.conv = nn.Conv3d(in_size, out_size, kernel_size, padding="same")
         self.norm = nn.BatchNorm3d(out_size)
         self.relu = nn.ReLU()
 
@@ -61,32 +56,49 @@ class Conv(nn.Module):
         return self.relu(x)
 
 
-class Head(nn.Module):
-    def __init__(self, in_size, hidden_size, output_size):
+class PolicyHead(nn.Module):
+    def __init__(self, in_size):
         super().__init__()
-        self.conv = Conv(in_size, hidden_size)
+        self.conv_block = ConvBlock(in_size, 2, kernel_size=1)
         self.flatten = nn.Flatten()
-        self.fc = nn.LazyLinear(output_size)
+        self.fc = nn.LazyLinear(POLICY_OUTPUT_SIZE)
+        self.softmax = nn.Softmax(dim=-1)
 
     def forward(self, x):
-        x = self.conv(x)
+        x = self.conv_block(x)
         x = self.flatten(x)
-        return self.fc(x)
+        x = self.fc(x)
+        return self.softmax(x)
+
+
+class ValueHead(nn.Module):
+    def __init__(self, in_size, linear_hidden_size):
+        super().__init__()
+        self.conv_block = ConvBlock(in_size, 1, kernel_size=1)
+        self.flatten = nn.Flatten()
+        self.fc = nn.LazyLinear(linear_hidden_size)
+        self.relu = nn.ReLU()
+        self.fc_out = nn.Linear(linear_hidden_size, 1)
+
+    def forward(self, x):
+        x = self.conv_block(x)
+        x = self.flatten(x)
+        x = self.fc(x)
+        x = self.relu(x)
+        x = self.fc_out(x)
+        return torch.tanh(x)
 
 
 class Residual(nn.Module):
     def __init__(self, hidden_size):
         super().__init__()
-        self.conv1 = nn.Conv3d(hidden_size, hidden_size, KERNEL_SIZE, padding="same")
-        self.norm1 = nn.BatchNorm3d(hidden_size)
-        self.conv2 = nn.Conv3d(hidden_size, hidden_size, KERNEL_SIZE, padding="same")
+        self.conv_block = ConvBlock(hidden_size, hidden_size, kernel_size=3)
+        self.conv2 = nn.Conv3d(hidden_size, hidden_size, kernel_size=3, padding="same")
         self.norm2 = nn.BatchNorm3d(hidden_size)
 
     def forward(self, x):
         res = x
-        x = self.conv1(x)
-        x = self.norm1(x)
-        x = F.relu(x)
+        x = self.conv_block(x)
         x = self.conv2(x)
         x = self.norm2(x)
         x += res
