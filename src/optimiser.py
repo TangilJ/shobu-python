@@ -10,10 +10,13 @@ logger = logging.getLogger(__name__)
 
 
 class Optimiser:
-    def __init__(self):
-        self.ax = AxClient()
+    def __init__(self, ax:AxClient):
+        self.ax = ax
 
-        self.ax.create_experiment(
+    @staticmethod
+    def new():
+        ax = AxClient()
+        ax.create_experiment(
             name="optimise",
             parameters=[
                 {
@@ -61,6 +64,7 @@ class Optimiser:
             ],
             objectives={"loss": ObjectiveProperties(minimize=True)},
         )
+        return Optimiser(ax)
 
     def save(self):
         t = datetime.now().strftime("%H%M%S")
@@ -69,10 +73,10 @@ class Optimiser:
         self.ax.save_to_json_file(f"optimiser/{t}.json")
 
     @staticmethod
-    def load(filename: str):
-        ax = AxClient()
-        ax.load_from_json_file(filename)
-        return ax
+    def load(self, filename: str):
+        ax = AxClient.load_from_json_file(filename)
+        logger.info(f"Loaded optimiser from: {filename}")
+        return Optimiser(ax)
 
     @staticmethod
     def _run_trial(p: dict) -> float:
@@ -120,6 +124,6 @@ if __name__ == "__main__":
         datefmt="%H:%M:%S",
     )
 
-    optimiser = Optimiser()
+    optimiser = Optimiser.new()
     optimiser.run(20)
     optimiser.save()
