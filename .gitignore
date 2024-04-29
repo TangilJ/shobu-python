@@ -1,4 +1,4 @@
 .idea/
-src/models/
+src/alphazero/models/
 src/optimiser/
 *__pycache__/

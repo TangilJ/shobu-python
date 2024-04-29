@@ -1,6 +1,6 @@
 import logging
 
-from src.environment import Environment, EnvConfig, ModelConfig
+from src.alphazero.environment import Environment, EnvConfig, ModelConfig
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(

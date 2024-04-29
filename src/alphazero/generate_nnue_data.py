@@ -7,8 +7,8 @@ from dataclasses import dataclass
 import torch
 
 from src import engine
-from src.conversions import board_to_tensor
-from src.network import AlphaZero
+from src.alphazero.conversions import board_to_tensor
+from src.alphazero.network import AlphaZero
 
 logger = logging.getLogger(__name__)
 

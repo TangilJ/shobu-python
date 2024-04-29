@@ -4,7 +4,7 @@ from datetime import datetime
 
 from ax.service.ax_client import AxClient, ObjectiveProperties
 
-from src.environment import ModelConfig, Environment, EnvConfig
+from src.alphazero.environment import ModelConfig, Environment, EnvConfig
 
 logger = logging.getLogger(__name__)
 

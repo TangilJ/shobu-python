@@ -2,7 +2,7 @@ from typing import Optional
 
 from src import engine
 from network import AlphaZero
-from src.conversions import board_to_tensor, move_to_policy_index
+from src.alphazero.conversions import board_to_tensor, move_to_policy_index
 
 
 class Node:

@@ -8,8 +8,8 @@ import logging
 
 from network import AlphaZero, ModelConfig, POLICY_OUTPUT_SIZE
 from src import engine
-from src.mcts import AlphaZeroMCTS
-from src.conversions import move_to_policy_index, board_to_tensor
+from src.alphazero.mcts import AlphaZeroMCTS
+from src.alphazero.conversions import move_to_policy_index, board_to_tensor
 
 logger = logging.getLogger(__name__)
 
