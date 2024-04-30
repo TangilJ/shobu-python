@@ -1,5 +1,7 @@
 from enum import Enum, auto
 
+from trueskill import Rating, rate_1vs1
+
 from src import engine
 from src.player import Player
 
@@ -53,6 +55,24 @@ class Compare:
                 loops += 1
 
         return p1_wins, p2_wins, loops
+
+    @staticmethod
+    def compare_many(players: [Player], games: int) -> [Rating]:
+        ratings = [Rating() for _ in players]
+        for _ in range(games):
+            for i, player in enumerate(players):
+                for j, opponent in enumerate(players):
+                    if i == j:
+                        continue
+
+                    c = Compare(player, opponent)
+                    p1_wins, p2_wins, loops = c.evaluate(1)
+                    if p1_wins > p2_wins:
+                        ratings[i], ratings[j] = rate_1vs1(ratings[i], ratings[j])
+                    elif p2_wins > p1_wins:
+                        ratings[j], ratings[i] = rate_1vs1(ratings[j], ratings[i])
+
+        return ratings
 
 
 if __name__ == "__main__":
